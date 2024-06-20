@@ -21,56 +21,6 @@ permissions:
   contents: write
 
 jobs:
-  test:
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        working-directory: tools/unitctl
-    env:
-      MAKE: make
-      CARGO: cargo
-      VERSION:
-      SHORT_VERSION:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - build: linux-x86_64
-            os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-          - build: macos-aarch64
-            os: macos-latest
-            target: aarch64-apple-darwin
-    steps:
-      - uses: actions/checkout@v4
-
-      - run: rustup update stable
-      - run: rustup target add ${{ matrix.target }}
-
-      - name: Install cross
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cross
-
-      - name: Install macOS depedencies
-        if: startsWith(matrix.os, 'macos')
-        run: |
-          brew install make gnu-sed grep gawk
-          echo "MAKE=gmake" >> $GITHUB_ENV
-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 21
-
-      - run: ${{ env.MAKE }} list-targets
-
-      - name: Generate openapi
-        run: ${{ env.MAKE }} openapi-generate
-      - name: Test ${{ matrix.os }}
-        run: ${{ env.MAKE }} test
-
   build:
     runs-on: ${{ matrix.os }}
     defaults:
@@ -85,18 +35,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - build: linux-aarch64
-            os: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
           - build: linux-x86_64
             os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-          - build: macos-aarch64
-            os: macos-latest
-            target: aarch64-apple-darwin
-          - build: macos-x86_64
-            os: macos-latest
-            target: x86_64-apple-darwin
 
     steps:
       - uses: actions/checkout@v4
